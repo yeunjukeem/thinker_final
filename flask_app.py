@@ -14,6 +14,7 @@ import string
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import pandas as pd
 
 from passlib.hash import pbkdf2_sha256
 import config
@@ -163,6 +164,12 @@ def send_verification_email(email, number):
             print(f'Error sending email: {e}')
         return 'Sent'
 
+
+# get quiz for csv file
+def get_quiz():
+    df = pd.read_csv('/home/kimmm/thinker_final/data/quiz.csv', encoding='cp949')
+    return df.values.tolist()
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -302,14 +309,14 @@ def testinfo():
         location = request.form['location']
         edu = request.form['edu']
         result = mysql.insert_info(user_iduser, sex, age, location, edu)
-        quiz = mysql.get_quiz()
+        quiz = get_quiz()
         return render_template('test.html',quiz=quiz)
 
 @app.route('/test', methods=['GET','POST'])
 @is_loged_in
 def test():
     if request.method =="GET":
-        quiz = mysql.get_quiz()
+        quiz = get_quiz()
         return render_template('test.html',quiz=quiz)
     elif request.method == "POST":
         user_iduser = request.form['iduser']
@@ -326,8 +333,8 @@ def test():
 
         result = mysql.insert_answer(user_iduser,q1,q2,q3,q4,q5,q6,q7,q8,q9,q10)
         print(result)
-        # result = mysql.get_result()
-        return redirect(url_for('result', id=user_iduser))
+        result = mysql.get_result()
+        return redirect(url_for('result'))
 
 
 
@@ -464,11 +471,11 @@ def board_register() :
          result = mysql.get_board_data()
          return render_template('board_register.html', data=result )
 
-@app.route('/result/<id>', methods=['GET', 'POST'])
+@app.route('/result', methods=['GET', 'POST'])
 @is_loged_in
-def result(id):
+def result():
     if request.method =="GET":
-        cat_score, rec_book = mysql.calculate_score(id)
+        cat_score, rec_book = mysql.calculate_score(session['iduser'])
         # print(cat_score)
         # print(rec_book)
         return render_template('result.html', data=cat_score, books=rec_book)
