@@ -1,7 +1,6 @@
 import pymysql
 from passlib.hash import pbkdf2_sha256
 import numpy as np
-import pandas as pd
 
 def hash_password(original_password):
     salt = 'eungok'
@@ -16,7 +15,7 @@ def check_password(input_password, hashed_password):
     return result
 
 class Mysql:
-    def __init__(self, host='kimmm.mysql.pythonanywhere-services.com', user='kimmm', db='kimmm$thinker', password='pyflask9', charset='utf8'):
+    def __init__(self, host='thinkerIn.mysql.pythonanywhere-services.com', user='thinkerIn', db='thinkerIn$thinker', password='pyflask9', charset='utf8'):
         self.host = host
         self.user = user
         self.db = db
@@ -150,19 +149,16 @@ class Mysql:
     def calculate_score(self,id):
         db = self.connect()
         curs = db.cursor()
-        df = pd.read_csv("/home/kimmm/thinker_final/data/quiz.csv", encoding='cp949')
-        # sql_ans = "select answer from quiz;"
-        sql_ans = df['answer'].astype('str').tolist()
+        sql_ans = "select answer from quiz;"
         sql_res = "select q1,q2,q3,q4,q5,q6,q7,q8,q9,q10 from result where user_iduser = %s;"
         sql_cat = "select edu from info where user_iduser = %s"
-        # curs.execute(sql_ans)
-        ans_rows = np.ravel(sql_ans, order='C')
+        curs.execute(sql_ans)
+        ans_rows = np.ravel(curs.fetchall(), order='C')
 
-        curs.execute(sql_res,[id])
+        curs.execute(sql_res,id)
         res_rows = np.ravel(curs.fetchall(), order='C')
-        print(res_rows)
 
-        curs.execute(sql_cat,[id])
+        curs.execute(sql_cat,id)
         fab_book = curs.fetchall()
 
         scr = np.where((ans_rows == res_rows),1,0)
